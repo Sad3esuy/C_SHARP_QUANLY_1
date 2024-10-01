@@ -45,6 +45,7 @@ namespace BAI2_CAU2_v2
                 double dtb = Math.Round(random.NextDouble() * 10, 1);
                 string faculty = random.Next(0, 2) == 0 ? "CNTT" : "QTKD";
                 dgvStudent.Rows.Add(id, name, gender, dtb, faculty);
+                DemSV();
             }
         }
         private void Form1_Load(object sender, EventArgs e)
@@ -53,6 +54,7 @@ namespace BAI2_CAU2_v2
             GenerateAndBindData();
             cmbKhoa.SelectedIndex = 0;
             cmbXepLoai.SelectedIndex = 0;
+            ShowAllRows();
         }
 
 
@@ -368,54 +370,24 @@ namespace BAI2_CAU2_v2
                 // Check if there are rows in the DataGridView
                 if (dgvStudent.Rows.Count == 0)
                 {
+                    MessageBox.Show("Khong ton tai sinh vien nao trong danh sach!!", "Thong bao!", MessageBoxButtons.OK);
                     return;
                 }
 
-                string selectedCategory = cmbXepLoai.SelectedItem?.ToString();
-                if (string.IsNullOrEmpty(selectedCategory))
+                if (cmbXepLoai.SelectedIndex == -1)
                 {
+                    ShowAllRows();
                     return;
                 }
 
-                double dtb;
+                string selectedCategory = cmbXepLoai.SelectedItem.ToString();
 
-                // Iterate through the rows in the DataGridView
                 foreach (DataGridViewRow row in dgvStudent.Rows)
                 {
-                    // Assuming 'txtDTB' contains the average score for the current student in the row
-                    if (double.TryParse(row.Cells[3].Value?.ToString(), out dtb)) // Replace "DTB" with the actual column name
+                    if (double.TryParse(row.Cells[3].Value?.ToString(), out double dtb))  // Ensure the value is not null
                     {
-                        // Clear previous selections if needed
-                        row.Visible = false; // Hide the row by default
-
-                        // Check the selected category and show the relevant rows
-                        switch (selectedCategory)
-                        {
-                            case "Xuất Sắc":
-                                if (dtb >= 9 && dtb <= 10)
-                                    row.Visible = true; // Show row if criteria met
-                                break;
-                            case "Giỏi":
-                                if (dtb >= 8 && dtb < 9)
-                                    row.Visible = true;
-                                break;
-                            case "Khá":
-                                if (dtb >= 7 && dtb < 8)
-                                    row.Visible = true;
-                                break;
-                            case "Trung bình":
-                                if (dtb >= 5 && dtb < 7)
-                                    row.Visible = true;
-                                break;
-                            case "Yếu":
-                                if (dtb >= 4 && dtb < 5)
-                                    row.Visible = true;
-                                break;
-                            case "Kém":
-                                if (dtb < 4)
-                                    row.Visible = true;
-                                break;
-                        }
+                        // Show or hide rows based on the selected category and average score (dtb)
+                        row.Visible = IsRowMatchingCategory(selectedCategory, dtb);
                     }
                 }
             }
@@ -424,8 +396,43 @@ namespace BAI2_CAU2_v2
                 MessageBox.Show("Đã xảy ra lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        private void ShowAllRows()
+        {
+            foreach (DataGridViewRow row in dgvStudent.Rows)
+            {
+                row.Visible = true;  // Make all rows visible
+            }
+        }
+        private bool IsRowMatchingCategory(string category, double dtb)
+        {
+            switch (category)
+            {
+                case "Xuất Sắc":
+                    return dtb >= 9 && dtb <= 10;
+                case "Giỏi":
+                    return dtb >= 8 && dtb < 9;
+                case "Khá":
+                    return dtb >= 7 && dtb < 8;
+                case "Trung Bình":
+                    return dtb >= 5 && dtb < 7;
+                case "Yếu":
+                    return dtb >= 4 && dtb < 5;
+                case "Kém":
+                    return dtb < 4;
+                default:
+                    return false; // Default case: row is hidden if no matching category
+            }
+        }
 
-
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            ShowAllRows();
+            txtStudentID.Clear();
+            txtStudentName.Clear();
+            optNu.Checked = true;
+            txtDTB.Clear();
+            cmbKhoa.SelectedIndex = 0;
+        }
     }
 }
 
